@@ -1,8 +1,12 @@
 ---
 # ansible-playbook to deploy multiple instances
-# ansible-playbook deploy_instances.yml -vv --private-key=/path/to/key
-# ansible-playbook deploy_instances.yml -vv --private-key=/home/jeff/vm_share/bashy_dot_files/els-demo.key
-# WORKING EXAMPLE ansible localhost -m ec2 -a "image=ami-bddaa2bc instance_type=t1.micro keypair=els-demo group=elasticsearch-demo-security-group wait=yes region=ap-northeast-1" -c local --private-key=/home/jeff/.ssh/els-demo.key
+# Example:
+# $> ansible-playbook deploy_instances.yml -vv --private-key=<path_to_your_private_key>
+#
+# A couple of assumptions:
+#  1- AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are exported and available to the shell
+#  2- You have the default ansible hosts file available in /etc/ansible/hosts
+
 
 - name: Create Instances
   hosts: localhost
@@ -26,12 +30,12 @@
       register: ec2
           
       # Use with_items to add each instance's public IP to a new hostgroup for use in the next play.
-      # TODO: I'm not sure what the function of groups is here and I don't see how this impacts the provisioning.
-    - name: Add new instances to host group
+     - name: Add new instances to host group
       local_action: add_host name={{item.public_dns_name}} groups=deploy
       with_items: ec2.instances
       
       # Configure timezone
+      # TODO- why is this failing??? It looks like it's failing to authenticate.
     - name: Configuring timezone
       shell: echo {{ timezone }} > /etc/timezone; dpkg-reconfigure --frontend noninteractive tzdata
       sudo: yes
